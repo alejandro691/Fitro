@@ -765,6 +765,48 @@ code { font-family: var(--mono); font-size: 13px; background: var(--verde-100); 
   .m-globo.feliz { border-color: #036A3E; }
   .m-globo .cuenta { display: block; margin-top: 4px; font-size: 11px; color: #62736A; }
 
+  /* ---- preguntas interactivas ---- */
+  .m-globo.interactivo { pointer-events: auto; max-width: 310px; padding: 12px 13px; }
+  .m-globo .m-cab { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 6px; font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: #9A700E; }
+  .m-globo .m-cab .pts { color: #036A3E; background: #E4F1EA; padding: 2px 8px; border-radius: 999px; letter-spacing: 0; text-transform: none; }
+  .m-globo .m-q { font-weight: 700; color: #15241C; }
+  .m-opciones { display: grid; gap: 6px; margin-top: 10px; }
+  .m-op {
+    display: flex; align-items: flex-start; gap: 8px; width: 100%; text-align: left; cursor: pointer;
+    font: 13px/1.35 Arial, Helvetica, sans-serif; color: #15241C; background: #F4F2EB; border: 1.5px solid transparent;
+    padding: 8px 10px; border-radius: 12px; transition: background .15s, border-color .15s, transform .1s;
+  }
+  .m-op:hover:not(:disabled) { background: #fff; border-color: #C69214; }
+  .m-op:active:not(:disabled) { transform: scale(.98); }
+  .m-op:focus-visible { outline: 3px solid #E8C86F; outline-offset: 1px; }
+  .m-op .l { flex: 0 0 20px; height: 20px; border-radius: 7px; display: grid; place-items: center; font-size: 11px; font-weight: 700; background: #fff; color: #9A700E; border: 1px solid #F7ECD0; }
+  .m-op:disabled { cursor: default; opacity: .55; }
+  .m-op.bien { opacity: 1; background: #E4F1EA; border-color: #036A3E; }
+  .m-op.bien .l { background: #036A3E; color: #fff; border-color: #036A3E; }
+  .m-op.mal { opacity: 1; background: #FDECEA; border-color: #D93A2F; }
+  .m-op.mal .l { background: #D93A2F; color: #fff; border-color: #D93A2F; }
+  .m-fb { margin-top: 10px; padding: 9px 11px; border-radius: 12px; font-size: 13px; line-height: 1.4; animation: m-aparece .3s ease; }
+  .m-fb.ok { background: #E4F1EA; color: #024D2D; }
+  .m-fb.no { background: #FFF6F5; color: #8E1B12; }
+  .m-fb b { display: block; margin-bottom: 2px; }
+  .m-fb .exp { display: block; margin-top: 6px; color: #2F4037; }
+  @keyframes m-aparece { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+  .m-pie { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; align-items: center; }
+  .m-btn {
+    cursor: pointer; border: 0; font: 700 12.5px/1 Arial, Helvetica, sans-serif; padding: 8px 12px; border-radius: 10px;
+    background: #036A3E; color: #fff;
+  }
+  .m-btn.sec { background: #fff; color: #024D2D; border: 1px solid #DCE5DF; }
+  .m-btn.ocre { background: #C69214; color: #01341E; }
+  .m-btn:focus-visible { outline: 3px solid #E8C86F; outline-offset: 2px; }
+  .m-saltar { margin-left: auto; cursor: pointer; border: 0; background: none; font: 12px Arial, Helvetica, sans-serif; color: #62736A; text-decoration: underline; padding: 4px; }
+  .monito .duda { opacity: 0; transition: opacity .3s; }
+  .monito.piensa .duda { opacity: 1; animation: m-duda 1.4s ease-in-out infinite; }
+  @keyframes m-duda { 50% { transform: translateY(-4px); } }
+  .monito.piensa .cabeza { transform-box: view-box; transform-origin: 60px 72px; transform: rotate(-8deg); transition: transform .4s; }
+  .monito.niega .cabeza { transform-box: view-box; transform-origin: 60px 72px; animation: m-niega .35s ease-in-out 4; }
+  @keyframes m-niega { 25% { transform: rotate(-10deg); } 75% { transform: rotate(10deg); } }
+
   .monito .lpm {
     position: absolute; left: 82%; top: 20px; white-space: nowrap;
     font: 700 11px/1 Arial, Helvetica, sans-serif; color: #01341E; background: #fff; border: 1.5px solid #C69214;
@@ -787,6 +829,7 @@ code { font-family: var(--mono); font-size: 13px; background: var(--verde-100); 
   @media (max-width: 720px) {
     .monito { width: 68px; height: 111px; }
     .m-globo { max-width: 210px; font-size: 13px; }
+    .m-globo.interactivo { max-width: min(300px, calc(100vw - 20px)); }
     body { padding-bottom: 110px; }
   }
   @media (prefers-reduced-motion: reduce) {
@@ -829,6 +872,8 @@ code { font-family: var(--mono); font-size: 13px; background: var(--verde-100); 
               <g><path d="M47 40 a1.5 1.5 0 1 1 3 0 a3 3 0 1 1 -6 0 a4.5 4.5 0 1 1 9 0"/></g>
               <g><path d="M70 40 a1.5 1.5 0 1 1 3 0 a3 3 0 1 1 -6 0 a4.5 4.5 0 1 1 9 0"/></g>
             </g>
+            <!-- signo de duda (cuando piensa en tu respuesta) -->
+            <text class="duda" x="96" y="12" font-family="Georgia, serif" font-size="26" font-weight="700" fill="#C69214">?</text>
             <!-- destellos de alegría -->
             <g class="brillo" fill="#E8C86F"><path d="M16 14 l2 5 l5 2 l-5 2 l-2 5 l-2 -5 l-5 -2 l5 -2 z"/><path d="M102 8 l1.5 4 l4 1.5 l-4 1.5 l-1.5 4 l-1.5 -4 l-4 -1.5 l4 -1.5 z"/></g>
             <!-- ondas de sonido (cuando escucha) -->
@@ -851,7 +896,7 @@ code { font-family: var(--mono); font-size: 13px; background: var(--verde-100); 
   'use strict';
   var el = document.getElementById('monito');
   // API mínima por si algo falla más abajo: la app nunca se rompe por el monito
-  window.Monito = { decir: function () {}, emocion: function () {}, nivelAudio: function () {} };
+  window.Monito = { decir: function () {}, preguntar: function () {}, modo: function () { return 'datos'; }, fijarProveedor: function () {}, emocion: function () {}, nivelAudio: function () {} };
   if (!el) return;
   try {
     var inclina = document.getElementById('monitoInclina');
@@ -891,36 +936,111 @@ code { font-family: var(--mono); font-size: 13px; background: var(--verde-100); 
     /* ---------- emociones ---------- */
     var emo = 'normal', emoHasta = 0;
     function emocion(nombre, ms) {
-      ['feliz', 'escucha', 'mareado'].forEach(function (c) { el.classList.remove(c); });
+      ['feliz', 'escucha', 'mareado', 'piensa', 'niega'].forEach(function (c) { el.classList.remove(c); });
       emo = nombre || 'normal';
       if (emo !== 'normal') { void el.offsetWidth; el.classList.add(emo); }
       emoHasta = ms ? performance.now() + ms : 0;
     }
 
-    /* ---------- globos de texto (cola) ---------- */
-    var cola = [], hablando = null, finHabla = 0, ultimoMensaje = 0;
+    /* ---------- globos de texto y preguntas (cola) ---------- */
+    var cola = [], hablando = null, finHabla = 0, ultimoMensaje = 0, congelado = false;
     var ICONOS = { info: '💡', feliz: '😊', alerta: '⚠️', pregunta: '💬' };
+    var puntos = { ok: 0, total: 0 }, proveedor = null;
+    var MODO = 'preguntas';
+    try { MODO = localStorage.getItem('monitoModo') || 'preguntas'; } catch (e) {}
+    function encolar(m, op) {
+      op = op || {};
+      if (el.classList.contains('oculto')) return;
+      if (op.limpiar) { cola = []; finHabla = 0; }
+      if (op.urgente) {
+        cola.unshift(m);
+        if (!(hablando && (hablando.pregunta || hablando.menu))) finHabla = 0;   // una pregunta abierta no se interrumpe
+      } else { if (cola.length > 10) cola.splice(1, 1); cola.push(m); }
+    }
     function decir(texto, op) {
       op = op || {};
-      if (!texto || el.classList.contains('oculto')) return;
-      var m = { texto: String(texto), tipo: op.tipo || 'info' };
-      if (op.limpiar) { cola = []; finHabla = 0; }
-      if (op.urgente) { cola.unshift(m); finHabla = 0; }
-      else { if (cola.length > 8) cola.shift(); cola.push(m); }
+      if (!texto) return;
+      encolar({ texto: String(texto), tipo: op.tipo || 'info' }, op);
     }
+    function preguntar(q, op) { if (q && q.texto && q.opciones && q.opciones.length) encolar({ pregunta: true, q: q }, op); }
+    function cerrarActual() { finHabla = 0; }
     function mostrarSiguiente(t) {
       if (hablando && t < finHabla) return;
-      if (hablando) { globo.classList.remove('ver'); hablando = null; finHabla = t + 380; return; }
+      if (hablando) {
+        globo.classList.remove('ver'); globo.classList.remove('interactivo');
+        if (hablando.pregunta || hablando.menu) { congelado = false; if (emo === 'piensa') emocion('normal'); }
+        hablando = null; finHabla = t + 380; return;
+      }
       if (t < finHabla || !cola.length) return;
       var m = cola.shift();
-      hablando = m;
-      globo.className = 'm-globo ' + m.tipo;
-      var ic = /^[☀-➿\uD83C-\uDBFF]/.test(m.texto) ? '' : '<span class="ic">' + (ICONOS[m.tipo] || '') + '</span>';
-      globo.innerHTML = ic + escapar(m.texto) + (cola.length ? '<span class="cuenta">' + (cola.length) + ' mensaje' + (cola.length > 1 ? 's' : '') + ' más…</span>' : '');
+      hablando = m; ultimoMensaje = t;
+      if (m.pregunta) { pintarPregunta(m.q); finHabla = Infinity; congelado = true; emocion('piensa'); }
+      else if (m.menu) { pintarMenu(m.opciones, m.titulo); finHabla = Infinity; congelado = true; }
+      else {
+        globo.className = 'm-globo ' + m.tipo;
+        var ic = /^[☀-➿\uD83C-\uDBFF]/.test(m.texto) ? '' : '<span class="ic">' + (ICONOS[m.tipo] || '') + '</span>';
+        globo.innerHTML = ic + escapar(m.texto) + (cola.length ? '<span class="cuenta">' + (cola.length) + ' mensaje' + (cola.length > 1 ? 's' : '') + ' más…</span>' : '');
+        finHabla = t + Math.min(9500, 2600 + m.texto.length * 48);
+      }
       void globo.offsetWidth;
       globo.classList.add('ver');
-      finHabla = t + Math.min(9500, 2600 + m.texto.length * 48);
-      ultimoMensaje = t;
+    }
+    function revolver(a) { a = a.slice(); for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)), t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+    function boton_(txt, clase, fn) {
+      var b = document.createElement('button'); b.type = 'button'; b.className = 'm-btn' + (clase ? ' ' + clase : ''); b.textContent = txt;
+      b.addEventListener('click', function (e) { e.stopPropagation(); fn(); });
+      return b;
+    }
+    function pintarPregunta(q) {
+      globo.className = 'm-globo pregunta interactivo';
+      var ops = q.fijo ? q.opciones.slice() : revolver(q.opciones);
+      var letras = 'ABCDE';
+      globo.innerHTML = '<div class="m-cab"><span>🤔 ' + escapar(q.etiqueta || 'Pregunta') + '</span>' + (puntos.total ? '<span class="pts">⭐ ' + puntos.ok + '/' + puntos.total + '</span>' : '') + '</div>' +
+        '<div class="m-q">' + escapar(q.texto) + '</div><div class="m-opciones"></div><div class="m-pie"></div>';
+      var cont = globo.querySelector('.m-opciones'), pie = globo.querySelector('.m-pie');
+      var saltar = document.createElement('button'); saltar.type = 'button'; saltar.className = 'm-saltar'; saltar.textContent = 'Saltar';
+      saltar.addEventListener('click', function (e) { e.stopPropagation(); cerrarActual(); });
+      pie.appendChild(saltar);
+      ops.forEach(function (o, i) {
+        var b = document.createElement('button'); b.type = 'button'; b.className = 'm-op';
+        b.innerHTML = '<span class="l">' + letras[i] + '</span><span>' + escapar(o.t) + '</span>';
+        b.addEventListener('click', function (e) {
+          e.stopPropagation();
+          var botones = cont.querySelectorAll('.m-op');
+          Array.prototype.forEach.call(botones, function (x) { x.disabled = true; });
+          ops.forEach(function (o2, k) { if (o2.ok) botones[k].classList.add('bien'); });
+          if (!o.ok) b.classList.add('mal');
+          puntos.total++; if (o.ok) puntos.ok++;
+          var cab = globo.querySelector('.m-cab .pts');
+          if (cab) cab.textContent = '⭐ ' + puntos.ok + '/' + puntos.total; else globo.querySelector('.m-cab').insertAdjacentHTML('beforeend', '<span class="pts">⭐ ' + puntos.ok + '/' + puntos.total + '</span>');
+          var fb = document.createElement('div'); fb.className = 'm-fb ' + (o.ok ? 'ok' : 'no');
+          fb.innerHTML = '<b>' + (o.ok ? elegir(['✅ ¡Correcto!', '✅ ¡Exacto!', '✅ ¡Muy bien!', '✅ ¡Eso es!']) : elegir(['❌ No exactamente…', '❌ Casi, pero no.', '❌ Mmm, no.'])) + '</b>' +
+            escapar(o.fb || '') + (q.explica ? '<span class="exp">' + escapar(q.explica) + '</span>' : '');
+          cont.parentNode.insertBefore(fb, pie);
+          emocion(o.ok ? 'feliz' : 'niega', o.ok ? 2200 : 1500);
+          pie.innerHTML = '';
+          (q.acciones || []).forEach(function (a) {
+            if (a.soloSiAcierta && !o.ok) return;
+            pie.appendChild(boton_(a.t, 'ocre', function () { cerrarActual(); setTimeout(a.fn, 50); }));
+          });
+          pie.appendChild(boton_('Continuar', '', cerrarActual));
+          if (proveedor) pie.appendChild(boton_('Otra pregunta', 'sec', function () { var nq = proveedor(); cerrarActual(); if (nq) preguntar(nq, { urgente: true }); else decir('Por ahora no tengo más preguntas. ¡Prueba otro filtro o graba otra señal! 🎙️', { tipo: 'feliz', urgente: true }); }));
+          finHabla = performance.now() + 45000;   // se cierra sola si nadie la toca
+          if (typeof q.alResponder === 'function') { try { q.alResponder(o.ok, o); } catch (err) {} }
+        });
+        cont.appendChild(b);
+      });
+    }
+    function pintarMenu(opciones, titulo) {
+      globo.className = 'm-globo feliz interactivo';
+      globo.innerHTML = '<div class="m-cab"><span>💚 ' + escapar(titulo || '¿Qué hacemos?') + '</span>' + (puntos.total ? '<span class="pts">⭐ ' + puntos.ok + '/' + puntos.total + '</span>' : '') + '</div><div class="m-opciones"></div>';
+      var cont = globo.querySelector('.m-opciones');
+      opciones.forEach(function (o) {
+        var b = document.createElement('button'); b.type = 'button'; b.className = 'm-op';
+        b.innerHTML = '<span class="l">' + o.ic + '</span><span>' + escapar(o.t) + '</span>';
+        b.addEventListener('click', function (e) { e.stopPropagation(); cerrarActual(); setTimeout(o.fn, 60); });
+        cont.appendChild(b);
+      });
     }
     function escapar(s) { return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
     function colocarGlobo() {
@@ -936,6 +1056,7 @@ code { font-family: var(--mono); font-size: 13px; background: var(--verde-100); 
     var vel = 0, pos0 = null, invers = [], dirPrev = 0, mareoHasta = 0, enfriaMareo = 0, enfriaRapido = 0, recuperar = false;
     function registrarMovimiento(cx, cy) {
       var t = performance.now();
+      if (congelado) { pos0 = null; invers = []; return; }
       if (pos0) {
         var dt = Math.max(1, t - pos0.t), dx = cx - pos0.x, dy = cy - pos0.y;
         var v = Math.sqrt(dx * dx + dy * dy) / dt * 1000;   // px/s
@@ -967,7 +1088,7 @@ code { font-family: var(--mono); font-size: 13px; background: var(--verde-100); 
       }
     }
     function elegir(a) { return a[Math.floor(Math.random() * a.length)]; }
-    function apuntar(cx) { if (typeof cx === 'number' && !isNaN(cx)) { objetivo = limitar(cx); ultimaOrden = performance.now(); } }
+    function apuntar(cx) { if (congelado) return; if (typeof cx === 'number' && !isNaN(cx)) { objetivo = limitar(cx); ultimaOrden = performance.now(); } }
     function deToque(e) { var t = (e.touches && e.touches[0]) || (e.changedTouches && e.changedTouches[0]); if (t) { apuntar(t.clientX); registrarMovimiento(t.clientX, t.clientY); } }
     var op = { passive: true, capture: true };
     document.addEventListener('mousemove', function (e) { apuntar(e.clientX); registrarMovimiento(e.clientX, e.clientY); }, op);
@@ -989,12 +1110,13 @@ code { font-family: var(--mono); font-size: 13px; background: var(--verde-100); 
     function curiosidad(t) {
       if (curiososDichos >= CURIOSOS.length || hablando || cola.length) return;
       if (t - ultimoMensaje < 38000) return;
+      if (MODO === 'preguntas' && proveedor && curiososDichos % 2 === 1) { var q = proveedor(); curiososDichos++; if (q) { preguntar(q); return; } }
       decir(CURIOSOS[curiososDichos++], { tipo: 'info' });
     }
 
     /* ---------- paseo autónomo en pantallas táctiles ---------- */
     function pasear(t) {
-      if (!tactil || t - ultimaOrden < 3500 || Math.abs(objetivo - x) > 6) return;
+      if (!tactil || congelado || t - ultimaOrden < 3500 || Math.abs(objetivo - x) > 6) return;
       objetivo = limitar(anchoVentana() * (0.12 + Math.random() * 0.76));
       ultimaOrden = t - 1500 + Math.random() * 1500;
     }
@@ -1004,8 +1126,9 @@ code { font-family: var(--mono); font-size: 13px; background: var(--verde-100); 
       var dt = ultimo ? Math.min((t - ultimo) / 1000, .05) : 0;
       ultimo = t;
       if ((cuenta++ % 30) === 0) revisarMarco();
+      if (congelado) objetivo = x;
       pasear(t); curiosidad(t);
-      if (emoHasta && t > emoHasta) emocion('normal');
+      if (emoHasta && t > emoHasta) emocion(congelado && hablando && hablando.pregunta ? 'piensa' : 'normal');
       if (recuperar && t > mareoHasta) { recuperar = false; if (emo === 'mareado') emocion('normal'); decir('Uf… ya se me pasó el mareo 😅', { tipo: 'feliz' }); }
       vel *= .94;
 
@@ -1046,24 +1169,46 @@ code { font-family: var(--mono); font-size: 13px; background: var(--verde-100); 
     /* ---------- ocultar / mostrar ---------- */
     function aplicar(oculto) {
       el.classList.toggle('oculto', oculto); boton.classList.toggle('apagado', oculto);
-      var txt = oculto ? 'Mostrar monito' : 'Ocultar monito';
+      var txt = oculto ? 'Mostrar monito' : 'Hablar con el monito';
       boton.setAttribute('aria-label', txt); boton.title = txt;
-      if (oculto) { cola = []; hablando = null; globo.classList.remove('ver'); }
+      if (oculto) { cola = []; hablando = null; congelado = false; globo.classList.remove('ver'); globo.classList.remove('interactivo'); }
     }
     var guardado = false;
     try { guardado = localStorage.getItem('monitoOculto') === '1'; } catch (e) {}
     aplicar(guardado);
+    function abrirMenu() {
+      var ops = [];
+      if (proveedor) ops.push({ ic: '🧠', t: 'Hazme una pregunta', fn: function () { var q = proveedor(); if (q) preguntar(q, { urgente: true }); else decir('Aún no tengo preguntas: graba o carga una señal primero 🎙️', { tipo: 'pregunta', urgente: true }); } });
+      ops.push({ ic: MODO === 'preguntas' ? '💬' : '🧠', t: MODO === 'preguntas' ? 'Cambiar a modo “solo datos” (sin preguntas)' : 'Cambiar a modo “preguntas”', fn: function () {
+        MODO = MODO === 'preguntas' ? 'datos' : 'preguntas';
+        try { localStorage.setItem('monitoModo', MODO); } catch (e) {}
+        decir(MODO === 'preguntas' ? '¡Listo! Te haré preguntas sobre lo que pasa con tu señal 🤓' : 'Ok, solo te contaré los datos, sin preguntas 👍', { tipo: 'feliz', urgente: true });
+      } });
+      if (puntos.total) ops.push({ ic: '⭐', t: 'Mi marcador: ' + puntos.ok + ' de ' + puntos.total + ' correctas', fn: function () { decir(puntos.ok === puntos.total ? '¡Perfecto! ' + puntos.ok + ' de ' + puntos.total + ' 🏆' : 'Llevas ' + puntos.ok + ' de ' + puntos.total + '. ¡Cada error es un dato para aprender! 💪', { tipo: 'feliz', urgente: true }); } });
+      ops.push({ ic: '🙈', t: 'Ocultar al monito', fn: function () { aplicar(true); try { localStorage.setItem('monitoOculto', '1'); } catch (e) {} } });
+      ops.push({ ic: '✖', t: 'Cerrar', fn: function () {} });
+      cola.unshift({ menu: true, opciones: ops, titulo: '¿Qué hacemos?' });
+      if (!(hablando && hablando.pregunta)) finHabla = 0;
+    }
     boton.addEventListener('click', function (e) {
       e.stopPropagation();
-      var oculto = !el.classList.contains('oculto');
-      aplicar(oculto);
-      try { localStorage.setItem('monitoOculto', oculto ? '1' : '0'); } catch (e2) {}
-      if (!oculto) decir('¡Volví! 💚', { tipo: 'feliz', urgente: true });
+      if (el.classList.contains('oculto')) {
+        aplicar(false);
+        try { localStorage.setItem('monitoOculto', '0'); } catch (e2) {}
+        decir('¡Volví! 💚 Toca el corazón cuando quieras que te pregunte algo.', { tipo: 'feliz', urgente: true });
+        return;
+      }
+      if (hablando && hablando.menu) { cerrarActual(); return; }
+      abrirMenu();
     });
+    boton.title = 'Hablar con el monito'; boton.setAttribute('aria-label', 'Hablar con el monito');
 
     window.Monito = {
       decir: decir,
-      emocion: function (n, ms) { if (emo === 'mareado' && n !== 'mareado' && performance.now() < mareoHasta) return; emocion(n, ms); },
+      preguntar: preguntar,
+      modo: function () { return MODO; },
+      fijarProveedor: function (fn) { proveedor = fn; },
+      emocion: function (n, ms) { if (emo === 'mareado' && n !== 'mareado' && performance.now() < mareoHasta) return; if (congelado && n === 'normal') return; emocion(n, ms); },
       nivelAudio: function (v) { nivel = nivel * .7 + (v || 0) * .3; }
     };
   } catch (err) {
@@ -1440,6 +1585,13 @@ code { font-family: var(--mono); font-size: 13px; background: var(--verde-100); 
 
   /* ---- El monito cuenta datos interesantes ---- */
   function narrar(e, origen) {
+    if (window.Monito && window.Monito.modo() === 'preguntas' && window.LAB.siguientePregunta) {
+      M.decir('¡Listo! Analicé ' + origen + ': ' + fmtEntero(e.n) + ' muestras a ' + fmtEntero(e.fs) + ' Hz. Ya ves tus medidas… ahora ¡a pensar! 🤓', { tipo: 'feliz', limpiar: true });
+      M.emocion('feliz', 2500);
+      if (e.saturadas > 0) M.decir('⚠️ ' + fmtEntero(e.saturadas) + ' muestras tocaron ±1: la señal se saturó. Aléjate un poco del micrófono.', { tipo: 'alerta' });
+      for (var iq = 0; iq < 2; iq++) { var q = window.LAB.siguientePregunta('senal'); if (q) window.Monito.preguntar(q); }
+      return;
+    }
     var msgs = [];
     msgs.push('¡Listo! Analicé ' + origen + ': ' + fmtEntero(e.n) + ' muestras a ' + fmtEntero(e.fs) + ' Hz. Para la computadora tu sonido es un vector de ' + fmtEntero(e.n) + ' números 🤓');
     if (Math.abs(e.media) < 0.1 * e.desv) {
@@ -1463,6 +1615,57 @@ code { font-family: var(--mono); font-size: 13px; background: var(--verde-100); 
     msgs.forEach(function (m, i) { M.decir(m, { tipo: i === 0 ? 'feliz' : 'info', limpiar: i === 0 }); });
     M.emocion('feliz', 2500);
   }
+
+
+  /* =========================================================
+   * Preguntas del monito sobre la señal (pestaña 1)
+   * ========================================================= */
+  function sinRepetir(ops) { var vistos = {}; return ops.filter(function (o) { if (vistos[o.t]) return false; vistos[o.t] = 1; return true; }); }
+  function preguntasSenal(e) {
+    if (!e) return [];
+    var Q = [], f = fmt, casiCero = Math.abs(e.media) < 0.1 * e.desv;
+    if (casiCero) Q.push({ id: 's-media', prio: 6, etiqueta: 'Media', texto: 'Tu media salió x̄ = ' + f(e.media) + ', casi cero. ¿Por qué crees que pasa esto?', opciones: [
+      { t: 'El sonido oscila arriba y abajo del reposo y, al sumar, se cancela', ok: true, fb: 'La presión del aire sube y baja alrededor de su valor de reposo: los valores positivos y negativos se compensan.' },
+      { t: 'El micrófono casi no grabó nada', fb: 'No: σ = ' + f(e.desv) + ' muestra que sí hay señal. Sin señal, σ también sería ≈ 0.' },
+      { t: 'Porque la mediana es casi cero', fb: 'Media y mediana son medidas distintas; una no determina a la otra.' }] });
+    else Q.push({ id: 's-dc', prio: 6, etiqueta: 'Media', texto: 'Tu media es x̄ = ' + f(e.media) + ', grande comparada con σ = ' + f(e.desv) + '. ¿Qué indica?', opciones: [
+      { t: 'Hay un nivel constante (offset de DC) sumado a la señal', ok: true, fb: 'Una componente de DC desplaza toda la señal hacia arriba o abajo. Un filtro pasa-altas la quitaría (¡pruébalo en la pestaña del filtro!).' },
+      { t: 'Que el sonido es muy agudo', fb: 'Lo agudo depende de la frecuencia, no de la media.' },
+      { t: 'Que la señal se saturó', fb: 'La saturación recorta los picos; no es lo que mueve la media.' }] });
+    Q.push({ id: 's-escala', prio: 5, etiqueta: 'Desviación estándar', texto: 'Si grabaras exactamente lo mismo pero el doble de fuerte, ¿qué le pasaría a σ = ' + f(e.desv) + '?', opciones: [
+      { t: 'Se duplicaría: ≈ ' + f(2 * e.desv), ok: true, fb: 'σ crece en la misma proporción que la amplitud: σ(2x) = 2·σ(x).' },
+      { t: 'Se cuadruplicaría: ≈ ' + f(4 * e.desv), fb: 'El ×4 le pasa a la varianza σ² y a la energía, no a σ.' },
+      { t: 'No cambiaría', fb: 'σ mide la dispersión de las amplitudes; si las amplitudes se duplican, σ también.' }], explica: 'Compruébalo: graba de nuevo hablando más fuerte y compara.' });
+    Q.push({ id: 's-robusta', prio: 4, etiqueta: 'Mediana', texto: 'Imagina que al final de tu grabación das un aplauso fortísimo. ¿Qué medida cambiaría MENOS?', opciones: [
+      { t: 'La mediana', ok: true, fb: 'El aplauso dura pocas muestras: el valor central casi no se mueve. Por eso la mediana es “robusta”.' },
+      { t: 'El valor pico', fb: 'El pico cambiaría muchísimo: el aplauso sería el nuevo máximo.' },
+      { t: 'La desviación estándar', fb: 'σ sí cambia: el aplauso agrega muestras muy lejos de la media.' }] });
+    Q.push({ id: 's-N', prio: 3, etiqueta: 'Muestreo', texto: 'Tu señal dura ' + e.dur.toFixed(2) + ' s y se muestreó a ' + fmtEntero(e.fs) + ' Hz. ¿Cuántas muestras tiene x[n]?', opciones: sinRepetir([
+      { t: fmtEntero(e.n), ok: true, fb: 'N = fs × duración = ' + fmtEntero(e.fs) + ' × ' + e.dur.toFixed(2) + ' ≈ ' + fmtEntero(e.n) + '.' },
+      { t: fmtEntero(Math.round(e.fs / e.dur)), fb: 'Eso es fs ÷ duración. Se juntan fs muestras por cada segundo: hay que multiplicar.' },
+      { t: fmtEntero(Math.round(e.dur * 1000)), fb: 'Eso son los milisegundos de duración, no las muestras.' }]) });
+    if (casiCero) Q.push({ id: 's-rms', prio: 3, etiqueta: 'RMS y σ', texto: 'σ = ' + f(e.desv) + ' y RMS = ' + f(e.rms) + ' salieron casi iguales. ¿Por qué?', opciones: [
+      { t: 'Porque la media es casi cero', ok: true, fb: 'RMS² = σ²·(N−1)/N + x̄². Con x̄ ≈ 0, el RMS y σ casi coinciden.' },
+      { t: 'Porque siempre son iguales', fb: 'No siempre: si x̄ ≠ 0, el RMS es mayor que σ.' },
+      { t: 'Es pura coincidencia', fb: 'Hay una razón matemática: RMS² = σ²·(N−1)/N + x̄².' }] });
+    if (e.tono) {
+      var T = 1000 / e.tono.f;
+      Q.push({ id: 's-tono', prio: 4, etiqueta: 'Periodicidad', texto: 'Con autocorrelación encontré que tu señal se repite cada ' + T.toFixed(2) + ' ms. ¿Cuál es su frecuencia fundamental?', opciones: sinRepetir([
+        { t: '≈ ' + Math.round(e.tono.f) + ' Hz', ok: true, fb: 'f = 1/T = 1/' + (T / 1000).toFixed(5) + ' s ≈ ' + Math.round(e.tono.f) + ' Hz.' },
+        { t: '≈ ' + Math.max(1, Math.round(T)) + ' Hz', fb: 'Ese número es el periodo en ms, no la frecuencia. Recuerda: f = 1/T.' },
+        { t: '≈ ' + fmtEntero(Math.round(e.tono.f * 10)) + ' Hz', fb: 'Revisa unidades: pasa T de milisegundos a segundos antes de invertir.' }]) });
+    }
+    Q.push({ id: 's-zcr', prio: 2, etiqueta: 'Cruces por cero', texto: 'Tu señal cruza el cero ' + fmtEntero(e.zcr) + ' veces por segundo. Si ahora silbas una nota aguda, ¿qué pasará con ese número?', opciones: [
+      { t: 'Aumentará', ok: true, fb: 'Un sonido agudo oscila más rápido: más cruces por cero por segundo.' },
+      { t: 'Disminuirá', fb: 'Al revés: menos cruces = oscilaciones más lentas (sonido grave).' },
+      { t: 'No cambiará', fb: 'Los cruces por cero dependen mucho de la frecuencia de la señal.' }], explica: '¡Pruébalo! Graba un silbido y compara.' });
+    if (e.saturadas > 0) Q.push({ id: 's-sat', prio: 7, etiqueta: 'Saturación', texto: fmtEntero(e.saturadas) + ' muestras llegaron a ±1. ¿Qué significa?', opciones: [
+      { t: 'El sonido superó el rango del convertidor y se recortó (clipping)', ok: true, fb: 'Se perdió información: los picos reales eran más altos. Aléjate del micrófono o habla más bajo.' },
+      { t: 'Que la grabación es perfecta', fb: 'Al contrario: los picos se recortaron y se perdió información.' },
+      { t: 'Que fs era muy baja', fb: 'fs no tiene que ver con la amplitud máxima; eso depende del rango del convertidor.' }] });
+    return Q;
+  }
+  window.LAB.preguntasSenal = function () { return S.est ? preguntasSenal(S.est) : []; };
 
   /* =========================================================
    * Gráfica principal
@@ -1798,7 +2001,8 @@ code { font-family: var(--mono); font-size: 13px; background: var(--verde-100); 
 
   /* ---- bienvenida ---- */
   setTimeout(function () {
-    M.decir('¡Hola! 👋 Soy tu monito bioingeniero. Presiona el botón rojo y di “aaaa” unos segundos.', { tipo: 'feliz' });
+    M.decir('¡Hola! 👋 Soy tu monito bioingeniero. Presiona el botón rojo y di “aaaa” unos segundos. Después te haré preguntas sobre tu señal 🤓', { tipo: 'feliz' });
+    M.decir('Toca el ❤️ de abajo a la derecha cuando quieras hablar conmigo o pedirme una pregunta.', { tipo: 'info' });
     M.decir('También puedes usar la “Señal de ejemplo” si no tienes micrófono a la mano 🎧', { tipo: 'info' });
   }, 900);
 
@@ -2767,6 +2971,7 @@ code { font-family: var(--mono); font-size: 13px; background: var(--verde-100); 
    * ========================================================= */
   function pct(a, b) { return Math.abs(a) < 1e-15 ? 0 : (b - a) / Math.abs(a) * 100; }
   function narrarFiltro() {
+    if (window.Monito && window.Monito.modo() === 'preguntas') { narrarConPreguntas(); return; }
     var F = ST.F, I = ST.info, cl = ST.clase, X = ST.estX, Y = ST.estY, fs = fsActual(), msgs = [];
     var forma = F.fir ? 'FIR (solo usa entradas: siempre estable)' : 'IIR (recursivo: usa salidas pasadas y[n−k])';
     msgs.push(['Apliqué tu ecuación 🛠️. Es un filtro ' + forma + ' de orden ' + fmtEntero(F.orden) + ' y se comporta como ' + cl.txt + '.', 'feliz']);
@@ -2818,6 +3023,150 @@ code { font-family: var(--mono); font-size: 13px; background: var(--verde-100); 
     decirTodo(msgs);
   }
   function decirTodo(msgs) { msgs.forEach(function (m, i) { M.decir(m[0], { tipo: m[1], limpiar: i === 0 }); }); }
+
+
+  /* =========================================================
+   * Preguntas del monito sobre el filtro (pestaña 2)
+   * ========================================================= */
+  function revolver(a) { a = a.slice(); for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)), t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+  function conSigno(p) { return (p > 0 ? '+' : '') + menos(p.toFixed(Math.abs(p) < 10 ? 1 : 0)) + ' %'; }
+  var NOMBRES = { pasabajas: 'Pasa-bajas', pasaaltas: 'Pasa-altas', ranura: 'Ranura (rechaza una sola frecuencia)', peine: 'Peine (muchas ranuras repetidas)', ganancia: 'Solo cambia la ganancia', retardo: 'Retardo puro', pasatodo: 'Pasa-todo', pasabanda: 'Pasa-banda' };
+  var USOS = {
+    pasabajas: ['Suavizar ruido de alta frecuencia en un ECG o EMG', 'Un pasa-bajas quita lo rápido (ruido) y deja lo lento. Cuidado: si cortas muy bajo deformas el QRS.'],
+    pasaaltas: ['Quitar la deriva de línea base de un ECG', 'Un pasa-altas elimina lo lento: la deriva por respiración o movimiento (tema 5.2).'],
+    ranura: ['Eliminar la interferencia de 60 Hz de la red eléctrica', 'La ranura quita una sola frecuencia y deja casi intacto lo demás (tema 5.3).'],
+    peine: ['Eliminar 60 Hz y todos sus armónicos a la vez', 'El peine pone ceros en 60, 120, 180 Hz… (tema 4.7).'],
+    pasabanda: ['Conservar solo la banda útil de un EMG (20–450 Hz)', 'Un pasa-banda deja pasar solo un intervalo de frecuencias.']
+  };
+  function datosEco() {
+    var F = ST.F, fs = fsActual();
+    if (F && F.fir && F.b.length === 2 && F.b[0].k === 0 && Math.abs(F.b[0].c - 1) < 1e-9 && F.b[1].k >= fs * 0.02) return { D: F.b[1].k, g: F.b[1].c };
+    return null;
+  }
+  function probarInverso(eco) {
+    if (!ST.y || ST.exploto >= 0) return;
+    ST.cadena.push(ST.texto);
+    ST.entrada = Float32Array.from(ST.y);
+    ST.estX = U.analizar(ST.entrada, fsActual());
+    actualizarCadena();
+    inp.value = 'y[n] = x[n] - ' + num(eco.g) + '*y[n-' + eco.D + ']';
+    marcarPreset(null);
+    actualizarDesdeTexto('texto', true);
+  }
+  function estabilizar() {
+    var F = ST.F; if (!F || F.a.length !== 1) return;
+    var c = F.a[0].c, F2 = { b: F.b, a: [{ k: F.a[0].k, c: (c < 0 ? -1 : 1) * 0.99 }] };
+    inp.value = aTexto(F2); marcarPreset(null);
+    actualizarDesdeTexto('texto', true);
+  }
+  function preguntasFiltro() {
+    if (!ST.F || !ST.y || !ST.estX) return [];
+    var F = ST.F, I = ST.info, cl = ST.clase, X = ST.estX, Y = ST.estY, fs = fsActual(), Q = [];
+    if (ST.exploto >= 0) {
+      var acc = F.a.length === 1 ? [{ t: '🔧 Probar con |a| = 0.99', fn: estabilizar }] : [];
+      Q.push({ id: 'f-explota', prio: 10, etiqueta: 'Estabilidad', texto: '¡La salida creció sin límite en t = ' + (ST.exploto / fs).toFixed(3) + ' s! ¿Qué lo causa?', opciones: [
+        { t: 'Un polo fuera del círculo unitario: la retroalimentación crece en cada vuelta', ok: true, fb: (I.radioMax != null ? 'El polo tiene radio ' + I.radioMax.toFixed(4) + ' > 1. ' : '') + 'Cada muestra de y se multiplica por algo mayor que 1 y crece sin límite.' },
+        { t: 'La señal de entrada era demasiado fuerte', fb: 'No: aunque la entrada fuera pequeñísima, un sistema inestable termina explotando.' },
+        { t: 'El filtro tiene demasiados ceros', fb: 'Los ceros no causan inestabilidad; solo los polos (las raíces de a).' }], acciones: acc });
+      return Q;
+    }
+    Q.push({ id: 'f-tipo', prio: 3, etiqueta: 'FIR o IIR', texto: '¿Tu ecuación describe un filtro FIR o uno IIR?', fijo: true, opciones: [
+      { t: 'FIR: solo usa entradas x[n−k]', ok: F.fir, fb: F.fir ? 'No usa salidas pasadas: h[n] dura ' + fmtEntero(F.maxB + 1) + ' muestras y siempre es estable.' : 'Tu ecuación sí usa salidas pasadas y[n−k]: eso la hace recursiva (IIR).' },
+      { t: 'IIR: usa salidas pasadas y[n−k]', ok: !F.fir, fb: !F.fir ? 'Al retroalimentar y[n−k], h[n] nunca termina del todo: respuesta al impulso infinita.' : 'No hay ningún y[n−k] del lado derecho: es FIR.' }] });
+    if (NOMBRES[cl.tipo]) {
+      var DESC = { pasabajas: '|H(f)| es alta en frecuencias bajas y cae en las altas.', pasaaltas: '|H(f)| es pequeña cerca de 0 Hz y alta en frecuencias altas.', ranura: '|H(f)| es plana salvo un hueco profundo en ≈ ' + Math.round(cl.f || 60) + ' Hz.', peine: '|H(f)| tiene muchos huecos repetidos, como los dientes de un peine.', ganancia: '|H(f)| es una línea plana: todas las frecuencias se multiplican igual.', retardo: '|H(f)| es plana en 0 dB: el retardo no cambia magnitudes, solo el tiempo.', pasatodo: '|H(f)| es plana: solo cambia la fase.', pasabanda: '|H(f)| tiene una joroba en medio.' };
+      var otras = revolver(Object.keys(NOMBRES).filter(function (k) { return k !== cl.tipo; })).slice(0, 2);
+      Q.push({ id: 'f-clase', prio: 5, etiqueta: 'Respuesta en frecuencia', texto: 'Observa la gráfica |H(f)| (cuadro 5). ¿Qué tipo de filtro es?', opciones: [{ t: NOMBRES[cl.tipo], ok: true, fb: DESC[cl.tipo] }].concat(otras.map(function (k) { return { t: NOMBRES[k], fb: 'Fíjate en la forma: ' + DESC[cl.tipo] }; })) });
+    }
+    if (isFinite(I.dc) && Y) {
+      var h0 = I.dc, pred = h0 * X.media, med = ' Medida real: ȳ = ' + fmt(Y.media) + '.';
+      if (Math.abs(h0) < 1e-3) Q.push({ id: 'f-dc0', prio: 6, etiqueta: 'Media y H(0)', texto: 'Este filtro tiene H(0) = ' + num(h0) + ' y la media de entrada es ' + fmt(X.media) + '. ¿Qué media esperas a la salida?', opciones: [
+        { t: '≈ 0', ok: true, fb: 'H(0) es la ganancia en 0 Hz, es decir, para la DC. Si H(0) = 0, el filtro elimina la media.' + med },
+        { t: 'La misma: ' + fmt(X.media), fb: 'Eso pasaría si H(0) = 1. Aquí la DC se bloquea.' + med },
+        { t: 'El doble: ' + fmt(2 * X.media), fb: 'La media de salida es H(0)·x̄ = 0.' + med }] });
+      else if (Math.abs(h0 - 1) > 0.05 && Math.abs(X.media) > 1e-4) Q.push({ id: 'f-h0', prio: 6, etiqueta: 'Media y H(0)', texto: 'La media de entrada es x̄ = ' + fmt(X.media) + ' y el filtro tiene H(0) = ' + num(h0) + '. ¿Cuál será (aprox.) la media de salida?', opciones: [
+        { t: fmt(pred), ok: true, fb: 'ȳ ≈ H(0)·x̄ = ' + num(h0) + ' × ' + fmt(X.media) + '.' + med + ' ✔' },
+        { t: fmt(X.media), fb: 'Solo sería igual si H(0) = 1. La DC se multiplica por H(0).' + med },
+        { t: fmt(X.media / h0), fb: 'Se multiplica por H(0), no se divide.' + med }] });
+    }
+    if (Y) {
+      var dS = pct(X.desv, Y.desv), cS = dS < -3 ? 'baja' : dS > 3 ? 'sube' : 'igual', fbS = 'σ pasó de ' + fmt(X.desv) + ' a ' + fmt(Y.desv) + ' (' + conSigno(dS) + ').';
+      Q.push({ id: 'f-sigma', prio: 4, etiqueta: 'Desviación estándar', texto: 'Sin mirar la tabla 8: ¿qué crees que le pasó a σ (era ' + fmt(X.desv) + ') al filtrar?', fijo: true, opciones: [
+        { t: 'Bajó: el filtro quitó energía', ok: cS === 'baja', fb: fbS }, { t: 'Subió: el filtro amplificó', ok: cS === 'sube', fb: fbS }, { t: 'Casi no cambió', ok: cS === 'igual', fb: fbS }] });
+      var dz = pct(X.zcr, Y.zcr), cz = dz < -15 ? 'grave' : dz > 15 ? 'aguda' : 'igual', fbz = 'Los cruces por cero cambiaron ' + conSigno(dz) + '. Menos cruces = oscilaciones más lentas (más grave); más cruces = más agudo.';
+      Q.push({ id: 'f-zcr', prio: cz === 'igual' ? 1 : 4, etiqueta: '¿Cómo suena?', texto: 'Los cruces por cero pasaron de ' + fmtEntero(X.zcr) + '/s a ' + fmtEntero(Y.zcr) + '/s. ¿Cómo debería sonar y[n] comparada con x[n]?', fijo: true, opciones: [
+        { t: 'Más grave o apagada', ok: cz === 'grave', fb: fbz }, { t: 'Más aguda o brillante', ok: cz === 'aguda', fb: fbz }, { t: 'Casi igual de timbre', ok: cz === 'igual', fb: fbz }], explica: 'Compruébalo con ▶ y el selector A/B.' });
+    }
+    if (!F.fir && I.estabilidad !== 'desconocida') Q.push({ id: 'f-estab', prio: 3, etiqueta: 'Estabilidad', texto: 'Tu filtro es recursivo. ¿Es estable?', fijo: true, opciones: [
+      { t: 'Sí: sus polos están dentro del círculo unitario', ok: I.estabilidad === 'estable', fb: 'Radio máximo de los polos: ' + (I.radioMax != null ? I.radioMax.toFixed(4) : '< 1') + '. Míralo en el cuadro 6.' },
+      { t: 'No: tiene un polo fuera del círculo', ok: I.estabilidad === 'inestable', fb: 'Radio máximo de los polos: ' + (I.radioMax != null ? I.radioMax.toFixed(4) : '—') + '.' },
+      { t: 'Depende de la señal de entrada', ok: false, fb: 'La estabilidad es una propiedad del sistema (de sus polos), no de la entrada.' }] });
+    if (F.fir && F.b.length > 1 && F.maxB <= 60) Q.push({ id: 'f-imp', prio: 2, etiqueta: 'Respuesta al impulso', texto: 'Si a tu filtro le entra un solo impulso δ[n], ¿cuántas muestras (como máximo) distintas de cero tendrá h[n]?', opciones: [
+      { t: String(F.maxB + 1), ok: true, fb: 'En un FIR, h[n] son justo los coeficientes b: ' + (F.maxB + 1) + ' valores. Míralo en el cuadro 4.' },
+      { t: 'Infinitas', fb: 'Eso pasa en un IIR. Un FIR no se retroalimenta: h[n] se acaba.' },
+      { t: String(F.maxB), fb: 'Cuenta también x[n] (k = 0): son ' + (F.maxB + 1) + '.' }] });
+    if (USOS[cl.tipo]) {
+      var otrosUsos = revolver(Object.keys(USOS).filter(function (k) { return k !== cl.tipo; })).slice(0, 2);
+      Q.push({ id: 'f-bio', prio: 5, etiqueta: 'Bioseñales', texto: '¿En cuál de estas tareas con bioseñales usarías un filtro como este?', opciones: [{ t: USOS[cl.tipo][0], ok: true, fb: USOS[cl.tipo][1] }].concat(otrosUsos.map(function (k) { return { t: USOS[k][0], fb: 'Para eso usarías un filtro ' + NOMBRES[k].toLowerCase() + '. El tuyo es ' + cl.txt + '.' }; })) });
+    }
+    var eco = datosEco();
+    if (eco) Q.push({ id: 'f-eco', prio: 9, etiqueta: 'Reto 🧩', texto: 'Tu filtro agrega un eco (g = ' + num(eco.g) + ', D = ' + fmtEntero(eco.D) + ' muestras = ' + (eco.D / fs * 1000).toFixed(0) + ' ms). ¿Qué ecuación lo deshace por completo?', opciones: [
+      { t: 'y[n] = x[n] − ' + num(eco.g) + '·y[n−' + eco.D + ']', ok: true, fb: 'Es el sistema inverso: H⁻¹(z) = 1 / (1 + g·z^−D). En cascada, el eco se cancela.' },
+      { t: 'y[n] = x[n] − ' + num(eco.g) + '·x[n−' + eco.D + ']', fb: 'Casi: así queda un eco residual de −g² a 2D muestras. Para cancelarlo del todo necesitas retroalimentación.' },
+      { t: 'y[n] = x[n] + ' + num(eco.g) + '·y[n−' + eco.D + ']', fb: 'Eso agrega reverberación en lugar de quitar el eco.' }],
+      acciones: [{ t: '🔁 ¡Probémoslo en cascada!', fn: function () { probarInverso(eco); } }] });
+    if (cl.tipo === 'ganancia') {
+      var g = F.b[0].c;
+      Q.push({ id: 'f-gan', prio: 7, etiqueta: 'Ganancia', texto: 'Tu filtro es y[n] = ' + num(g) + '·x[n] y σₓ = ' + fmt(X.desv) + '. ¿Cuánto vale σ_y?', opciones: [
+        { t: fmt(Math.abs(g) * X.desv), ok: true, fb: 'σ escala con |g|: σ_y = |g|·σₓ. Nunca es negativa.' },
+        { t: g < 0 ? fmt(g * X.desv) : fmt(g * g * X.desv), fb: g < 0 ? 'σ nunca es negativa: escala con |g|, no con g.' : 'g² escala la varianza σ², no σ.' },
+        { t: fmt(X.desv), fb: 'Multiplicar por una constante sí cambia la dispersión.' }] });
+    }
+    return Q;
+  }
+
+  /* ---- quién da la siguiente pregunta (evita repetir) ---- */
+  var preguntadas = {}, ids = typeof WeakMap === 'function' ? new WeakMap() : null, sigId = 1;
+  function idDe(obj) { if (!obj || !ids) return 0; if (!ids.has(obj)) ids.set(obj, sigId++); return ids.get(obj); }
+  function siguientePregunta(cual) {
+    var orden = cual ? [cual] : (window.LAB.pestana === 'filtro' ? ['filtro', 'senal'] : ['senal', 'filtro']);
+    for (var i = 0; i < orden.length; i++) {
+      var esF = orden[i] === 'filtro';
+      var pool = esF ? preguntasFiltro() : (window.LAB.preguntasSenal ? window.LAB.preguntasSenal() : []);
+      if (!pool.length) continue;
+      var ctx = esF ? 'f' + idDe(ST.entrada) + ':' + ST.texto + ':' : 's' + idDe(window.LAB.senal && window.LAB.senal.x) + ':';
+      var libres = pool.filter(function (q) { return !preguntadas[ctx + q.id]; }).sort(function (a, b) { return (b.prio || 0) - (a.prio || 0); });
+      if (!libres.length && !cual) continue;
+      if (!libres.length) { pool.forEach(function (q) { delete preguntadas[ctx + q.id]; }); libres = revolver(pool); }
+      preguntadas[ctx + libres[0].id] = 1;
+      return libres[0];
+    }
+    return null;
+  }
+  window.LAB.siguientePregunta = siguientePregunta;
+  if (window.Monito && window.Monito.fijarProveedor) window.Monito.fijarProveedor(function () { return siguientePregunta(); });
+
+  var tipAB = false;
+  function narrarConPreguntas() {
+    var F = ST.F, I = ST.info, fs = fsActual();
+    var forma = F.fir ? 'FIR' : 'IIR (recursivo)';
+    if (ST.exploto >= 0) {
+      M.decir('💥 ¡Uy! La salida creció sin límite a los ' + (ST.exploto / fs).toFixed(3) + ' s. Ayúdame a entender qué pasó…', { tipo: 'alerta', limpiar: true });
+      M.emocion('mareado', 3000);
+    } else {
+      var recupero = false;
+      if (ST.cadena.length && ST.base) {
+        var x0 = ST.base, n = Math.min(x0.length, ST.y.length), err = 0, ref = 0;
+        for (var i = 0; i < n; i++) { var d = ST.y[i] - x0[i]; err += d * d; ref += x0[i] * x0[i]; }
+        recupero = Math.sqrt(err / (ref || 1)) < 0.02;
+      }
+      if (recupero) { M.decir('🎉 ¡Recuperaste la señal original! Error < 2 %. Esa cascada es un sistema y su inverso: H(z)·H⁻¹(z) = 1.', { tipo: 'feliz', limpiar: true }); M.emocion('feliz', 3000); }
+      else M.decir('Apliqué tu ecuación 🛠️ (' + forma + ', orden ' + fmtEntero(F.orden) + '). Mira las gráficas y respóndeme:', { tipo: 'feliz', limpiar: true });
+    }
+    var n = ST.exploto >= 0 ? 1 : 2;
+    for (var k = 0; k < n; k++) { var q = siguientePregunta('filtro'); if (q) window.Monito.preguntar(q); }
+    if (!tipAB && ST.exploto < 0) { tipAB = true; M.decir('Tip: toca ▶ y alterna A · Original / B · Filtrada mientras suena 🎧. Y toca el ❤️ cuando quieras otra pregunta.', { tipo: 'info' }); }
+  }
 
   /* ---- botón extra: contaminar con 60 Hz ---- */
   var btnZ = document.createElement('button');
