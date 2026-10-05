@@ -684,7 +684,7 @@ code { font-family: var(--mono); font-size: 13px; background: var(--verde-100); 
     <span id="diag" style="flex-basis:100%;font-size:11px;opacity:.75"></span>
   </footer>
 
-  <script type="application/json" id="config">{"TITULO":"Laboratorio de filtros · Ecuaciones de diferencias","DURACION_MAXIMA_S":10,"URL_GRABADORA_EXTERNA":"https://script.google.com/macros/s/AKfycbzYSfxvEXMNlOMFT3dlHM8DMCDTS1QTPpbEKxq4zDd3vQs_1En7MSwIUQ9WYg2VD038yw/exec","URL_REGISTRO":"PEGA_AQUI_LA_URL_DEL_REGISTRO","PREGUNTAS_MINIMAS":10}</script>
+  <script type="application/json" id="config">{"TITULO":"Laboratorio de filtros · Ecuaciones de diferencias","DURACION_MAXIMA_S":10,"URL_GRABADORA_EXTERNA":"https://script.googleusercontent.com/a/macros/uabc.edu.mx/echo?user_content_key=AUkAhnTlGb6M4wLen4f42E8jlUNbGywHpsO6TsUPL32BBBpFlCnre6k_VVk8ZIZhLWVhijwfFZPU3Aa2i9k89ED_winlV6iiLGf3m4wUufIZg_Owumow9OHTFZVGFQIAgXsbJp2mmjILKPL3XNIeTn1CYPy9jaCR27-GowICjZcLxIrTqFpPePmQhLs53G4LE4TkZQxesYnWhbqF8shPP_ff-KIhOPW62DdLGly92lFLoCm4jTcRlMPUt1AmB0nykTSX5jhu1EdmpI9hFrlFWiQi06nvJr6aiphHCRk0w-V_cc2l-HYv7V0&lib=MLkWFLQm5jpVvzbb6-16D2fDzVMeNw3CU","URL_REGISTRO":"PEGA_AQUI_LA_URL_DEL_REGISTRO","PREGUNTAS_MINIMAS":10}</script>
   <!-- ============================================================
      Monito con corazón latiendo + globos de texto
      API para la app (window.Monito):
@@ -3387,8 +3387,12 @@ code { font-family: var(--mono); font-size: 13px; background: var(--verde-100); 
   function $(id) { return document.getElementById(id); }
   var CFG = {};
   try { CFG = JSON.parse(($('config') || {}).textContent || '{}'); } catch (e) {}
-  var URL_REG = String(CFG.URL_REGISTRO || '').trim();
-  if (!/^https:\/\//.test(URL_REG)) URL_REG = '';            // marcador sin configurar
+  var URL_REG = String(CFG.URL_REGISTRO || '').trim(), URL_MAL = '';
+  // solo se acepta la URL del receptor (Apps Script publicado como aplicación web)
+  if (URL_REG && !/^https:\/\/script\.google\.com\/(a\/macros\/[^/]+|macros)\/s\/[A-Za-z0-9_-]+\/exec\/?$/.test(URL_REG)) {
+    URL_MAL = /docs\.google\.com\/spreadsheets/.test(URL_REG) ? 'hoja' : (/PEGA_AQUI/.test(URL_REG) ? '' : 'otra');
+    URL_REG = '';
+  }
   var MINIMO = Math.max(1, parseInt(CFG.PREGUNTAS_MINIMAS, 10) || 10);
   var APP = CFG.TITULO || 'Laboratorio de filtros';
 
@@ -3531,7 +3535,7 @@ code { font-family: var(--mono); font-size: 13px; background: var(--verde-100); 
     $('resLista').innerHTML = historial.map(function (h, i) {
       return '<div class="' + (h.ok ? 'ok' : 'no') + '"><span>' + (h.ok ? '✅' : '❌') + '</span><span><b>' + (i + 1) + '. ' + escapar(h.etiqueta) + ':</b> ' + escapar(h.texto.length > 90 ? h.texto.slice(0, 88) + '…' : h.texto) + '</span></div>';
     }).join('') || '<div>Aún no has respondido preguntas.</div>';
-    $('resSync').textContent = URL_REG ? (cola.length ? '⏳ Enviando ' + cola.length + ' registro(s) pendiente(s)…' : '☁ Todas tus respuestas están guardadas.') : '⚠️ Esta copia no tiene configurada la hoja de resultados: avisa a tu profesor.';
+    $('resSync').textContent = receptor === 'no' ? '⚠️ La dirección de la hoja de resultados está mal configurada: avisa a tu profesor.' : URL_REG ? (cola.length ? '⏳ Enviando ' + cola.length + ' registro(s) pendiente(s)…' : '☁ Todas tus respuestas están guardadas.') : (URL_MAL ? '⚠️ La dirección de la hoja de resultados está mal configurada: avisa a tu profesor.' : '⚠️ Esta copia no tiene configurada la hoja de resultados: avisa a tu profesor.');
     $('resFondo').hidden = false;
   }
   function escapar(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
@@ -3564,11 +3568,34 @@ code { font-family: var(--mono); font-size: 13px; background: var(--verde-100); 
       .then(function (t) { var j = JSON.parse(t); return !!j.ok; })
       .catch(function () {
         // si el navegador no deja leer la respuesta, se envía sin leerla (el servidor descarta duplicados)
+        if (receptor !== 'desconocido' && receptor !== 'ok') return false;
         return fetch(URL_REG, { method: 'POST', mode: 'no-cors', body: cuerpo }).then(function () { return true; }, function () { return false; });
       });
   }
+  // Comprueba que la URL sea realmente el receptor (su doGet responde un JSON propio)
+  var receptor = 'verificando';   // 'ok' | 'no' | 'desconocido'
+  function verificarReceptor() {
+    if (!URL_REG) return;
+    fetch(URL_REG, { method: 'GET', redirect: 'follow' })
+      .then(function (r) { return r.text(); })
+      .then(function (t) {
+        var j = null; try { j = JSON.parse(t); } catch (e) {}
+        if (j && j.ok && /Receptor/i.test(j.mensaje || '')) { receptor = 'ok'; vaciar(); }
+        else {
+          receptor = 'no';
+          estadoSync('⚠ URL no es el receptor', 'error');
+          $('hudSync').title = /<title>[^<]*Laboratorio/i.test(t) || /Laboratorio de filtros/.test(t)
+            ? 'La URL configurada abre el propio laboratorio, no el receptor de la hoja. Publica Codigo.gs desde la hoja (Extensiones → Apps Script) y usa ESA URL /exec.'
+            : 'La URL configurada no respondió como el receptor de resultados (Codigo.gs). Revisa que sea la implementación hecha desde la hoja.';
+          if (window.console) console.warn('Registro: la URL no es el receptor →', t.slice(0, 120));
+        }
+      })
+      .catch(function () { receptor = 'desconocido'; vaciar(); });
+  }
   function vaciar() {
-    if (!URL_REG) { estadoSync('⚠ sin hoja', 'error'); return; }
+    if (receptor === 'no') { estadoSync('⚠ URL no es el receptor', 'error'); return; }
+    if (receptor === 'verificando' && URL_REG) return;
+    if (!URL_REG) { estadoSync(URL_MAL ? '⚠ URL incorrecta' : '⚠ sin hoja', 'error'); $('hudSync').title = URL_MAL === 'hoja' ? 'Se pegó el enlace de la hoja de cálculo. Debe ir la URL del receptor (script.google.com/macros/s/…/exec).' : 'Falta configurar la URL del receptor (script.google.com/macros/s/…/exec).'; return; }
     if (enviando) return;
     if (!cola.length) { estadoSync('☁ guardado'); return; }
     enviando = true; estadoSync('⏳ guardando', 'pend');
@@ -3579,6 +3606,7 @@ code { font-family: var(--mono); font-size: 13px; background: var(--verde-100); 
       else { estadoSync('⚠ sin conexión', 'error'); clearTimeout(tReintento); tReintento = setTimeout(vaciar, 15000); }
     });
   }
+  verificarReceptor();
   vaciar();   // reintenta lo que haya quedado pendiente de otra visita
   window.addEventListener('online', vaciar);
   // si cierran la pestaña sin terminar, se guarda el último estado
