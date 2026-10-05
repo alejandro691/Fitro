@@ -684,7 +684,7 @@ code { font-family: var(--mono); font-size: 13px; background: var(--verde-100); 
     <span id="diag" style="flex-basis:100%;font-size:11px;opacity:.75"></span>
   </footer>
 
-  <script type="application/json" id="config">{"TITULO":"Laboratorio de filtros · Ecuaciones de diferencias","DURACION_MAXIMA_S":10,"URL_GRABADORA_EXTERNA":"https://script.google.com/macros/s/AKfycbzYSfxvEXMNlOMFT3dlHM8DMCDTS1QTPpbEKxq4zDd3vQs_1En7MSwIUQ9WYg2VD038yw/exec","URL_REGISTRO":"PEGA_AQUI_LA_URL_DEL_REGISTRO","PREGUNTAS_MINIMAS":10}</script>
+  <script type="application/json" id="config">{"TITULO":"Laboratorio de filtros · Ecuaciones de diferencias","DURACION_MAXIMA_S":10,"URL_GRABADORA_EXTERNA":"","URL_REGISTRO":"https://script.google.com/macros/s/AKfycbzYSfxvEXMNlOMFT3dlHM8DMCDTS1QTPpbEKxq4zDd3vQs_1En7MSwIUQ9WYg2VD038yw/exec","PREGUNTAS_MINIMAS":10}</script>
   <!-- ============================================================
      Monito con corazón latiendo + globos de texto
      API para la app (window.Monito):
@@ -3568,12 +3568,12 @@ code { font-family: var(--mono); font-size: 13px; background: var(--verde-100); 
       .then(function (t) { var j = JSON.parse(t); return !!j.ok; })
       .catch(function () {
         // si el navegador no deja leer la respuesta, se envía sin leerla (el servidor descarta duplicados)
-        if (receptor !== 'desconocido' && receptor !== 'ok') return false;
+        if (receptor !== 'ok') return false;
         return fetch(URL_REG, { method: 'POST', mode: 'no-cors', body: cuerpo }).then(function () { return true; }, function () { return false; });
       });
   }
   // Comprueba que la URL sea realmente el receptor (su doGet responde un JSON propio)
-  var receptor = 'verificando';   // 'ok' | 'no' | 'desconocido'
+  var receptor = 'verificando', tVerif = null;   // 'ok' | 'no' | 'desconocido'
   function verificarReceptor() {
     if (!URL_REG) return;
     fetch(URL_REG, { method: 'GET', redirect: 'follow' })
@@ -3590,11 +3590,17 @@ code { font-family: var(--mono); font-size: 13px; background: var(--verde-100); 
           if (window.console) console.warn('Registro: la URL no es el receptor →', t.slice(0, 120));
         }
       })
-      .catch(function () { receptor = 'desconocido'; vaciar(); });
+      .catch(function () {
+        // no respondió (sin internet, o la implementación no es pública): se reintenta sin dar nada por guardado
+        receptor = 'desconocido';
+        estadoSync(navigator.onLine === false ? '⚠ sin conexión' : '⚠ la hoja no responde', 'error');
+        $('hudSync').title = 'No se pudo contactar al receptor de resultados. Si tienes internet, revisa que la implementación de la hoja tenga “Quién tiene acceso: Cualquier usuario”. Tus respuestas quedan pendientes y se enviarán solas.';
+        clearTimeout(tVerif); tVerif = setTimeout(verificarReceptor, 20000);
+      });
   }
   function vaciar() {
     if (receptor === 'no') { estadoSync('⚠ URL no es el receptor', 'error'); return; }
-    if (receptor === 'verificando' && URL_REG) return;
+    if ((receptor === 'verificando' || receptor === 'desconocido') && URL_REG) return;   // primero hay que confirmar el receptor
     if (!URL_REG) { estadoSync(URL_MAL ? '⚠ URL incorrecta' : '⚠ sin hoja', 'error'); $('hudSync').title = URL_MAL === 'hoja' ? 'Se pegó el enlace de la hoja de cálculo. Debe ir la URL del receptor (script.google.com/macros/s/…/exec).' : 'Falta configurar la URL del receptor (script.google.com/macros/s/…/exec).'; return; }
     if (enviando) return;
     if (!cola.length) { estadoSync('☁ guardado'); return; }
@@ -3608,7 +3614,7 @@ code { font-family: var(--mono); font-size: 13px; background: var(--verde-100); 
   }
   verificarReceptor();
   vaciar();   // reintenta lo que haya quedado pendiente de otra visita
-  window.addEventListener('online', vaciar);
+  window.addEventListener('online', function () { if (receptor === 'ok') vaciar(); else verificarReceptor(); });
   // si cierran la pestaña sin terminar, se guarda el último estado
   window.addEventListener('pagehide', function () {
     if (!SES || SES.terminado || !URL_REG) return;
