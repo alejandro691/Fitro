@@ -684,7 +684,7 @@ code { font-family: var(--mono); font-size: 13px; background: var(--verde-100); 
     <span id="diag" style="flex-basis:100%;font-size:11px;opacity:.75"></span>
   </footer>
 
-  <script type="application/json" id="config">{"TITULO":"Laboratorio de filtros · Ecuaciones de diferencias","DURACION_MAXIMA_S":10,"URL_GRABADORA_EXTERNA":""}</script>
+  <script type="application/json" id="config">{"TITULO":"Laboratorio de filtros · Ecuaciones de diferencias","DURACION_MAXIMA_S":10,"URL_GRABADORA_EXTERNA":"","URL_REGISTRO":"PEGA_AQUI_LA_URL_DEL_REGISTRO","PREGUNTAS_MINIMAS":10}</script>
   <!-- ============================================================
      Monito con corazón latiendo + globos de texto
      API para la app (window.Monito):
@@ -945,9 +945,8 @@ code { font-family: var(--mono); font-size: 13px; background: var(--verde-100); 
     /* ---------- globos de texto y preguntas (cola) ---------- */
     var cola = [], hablando = null, finHabla = 0, ultimoMensaje = 0, congelado = false;
     var ICONOS = { info: '💡', feliz: '😊', alerta: '⚠️', pregunta: '💬' };
-    var puntos = { ok: 0, total: 0 }, proveedor = null;
-    var MODO = 'preguntas';
-    try { MODO = localStorage.getItem('monitoModo') || 'preguntas'; } catch (e) {}
+    var puntos = { ok: 0, total: 0 }, proveedor = null, alResponderGlobal = null;
+    var MODO = 'preguntas';   // en esta versión las preguntas siempre están activas
     function encolar(m, op) {
       op = op || {};
       if (el.classList.contains('oculto')) return;
@@ -999,7 +998,7 @@ code { font-family: var(--mono); font-size: 13px; background: var(--verde-100); 
         '<div class="m-q">' + escapar(q.texto) + '</div><div class="m-opciones"></div><div class="m-pie"></div>';
       var cont = globo.querySelector('.m-opciones'), pie = globo.querySelector('.m-pie');
       var saltar = document.createElement('button'); saltar.type = 'button'; saltar.className = 'm-saltar'; saltar.textContent = 'Saltar';
-      saltar.addEventListener('click', function (e) { e.stopPropagation(); cerrarActual(); });
+      saltar.addEventListener('click', function (e) { e.stopPropagation(); if (typeof q.alSaltar === 'function') { try { q.alSaltar(); } catch (err) {} } cerrarActual(); });
       pie.appendChild(saltar);
       ops.forEach(function (o, i) {
         var b = document.createElement('button'); b.type = 'button'; b.className = 'm-op';
@@ -1024,9 +1023,13 @@ code { font-family: var(--mono); font-size: 13px; background: var(--verde-100); 
             pie.appendChild(boton_(a.t, 'ocre', function () { cerrarActual(); setTimeout(a.fn, 50); }));
           });
           pie.appendChild(boton_('Continuar', '', cerrarActual));
-          if (proveedor) pie.appendChild(boton_('Otra pregunta', 'sec', function () { var nq = proveedor(); cerrarActual(); if (nq) preguntar(nq, { urgente: true }); else decir('Por ahora no tengo más preguntas. ¡Prueba otro filtro o graba otra señal! 🎙️', { tipo: 'feliz', urgente: true }); }));
+          if (proveedor) pie.appendChild(boton_('Otra pregunta', 'sec', function () { var nq = proveedor(); cerrarActual(); if (nq) preguntar(nq, { urgente: true }); else decir('¡Ya respondiste todas mis preguntas sobre esto! Prueba otro ejemplo de filtro, graba otra señal o agrega el zumbido de 60 Hz para que tenga preguntas nuevas 🎙️', { tipo: 'feliz', urgente: true }); }));
           finHabla = performance.now() + 45000;   // se cierra sola si nadie la toca
           if (typeof q.alResponder === 'function') { try { q.alResponder(o.ok, o); } catch (err) {} }
+          if (typeof alResponderGlobal === 'function') {
+            var correcta = ''; q.opciones.forEach(function (o3) { if (o3.ok) correcta = o3.t; });
+            try { alResponderGlobal({ q: q, elegida: o.t, ok: !!o.ok, correcta: correcta }); } catch (err2) { if (window.console) console.error(err2); }
+          }
         });
         cont.appendChild(b);
       });
@@ -1178,12 +1181,7 @@ code { font-family: var(--mono); font-size: 13px; background: var(--verde-100); 
     aplicar(guardado);
     function abrirMenu() {
       var ops = [];
-      if (proveedor) ops.push({ ic: '🧠', t: 'Hazme una pregunta', fn: function () { var q = proveedor(); if (q) preguntar(q, { urgente: true }); else decir('Aún no tengo preguntas: graba o carga una señal primero 🎙️', { tipo: 'pregunta', urgente: true }); } });
-      ops.push({ ic: MODO === 'preguntas' ? '💬' : '🧠', t: MODO === 'preguntas' ? 'Cambiar a modo “solo datos” (sin preguntas)' : 'Cambiar a modo “preguntas”', fn: function () {
-        MODO = MODO === 'preguntas' ? 'datos' : 'preguntas';
-        try { localStorage.setItem('monitoModo', MODO); } catch (e) {}
-        decir(MODO === 'preguntas' ? '¡Listo! Te haré preguntas sobre lo que pasa con tu señal 🤓' : 'Ok, solo te contaré los datos, sin preguntas 👍', { tipo: 'feliz', urgente: true });
-      } });
+      if (proveedor) ops.push({ ic: '🧠', t: 'Hazme una pregunta', fn: function () { var q = proveedor(); if (q) preguntar(q, { urgente: true }); else decir(window.LAB && window.LAB.senal ? '¡Ya respondiste todas mis preguntas sobre esto! Prueba otro ejemplo de filtro o graba otra señal 🎙️' : 'Aún no tengo preguntas: graba o carga una señal primero 🎙️', { tipo: 'pregunta', urgente: true }); } });
       if (puntos.total) ops.push({ ic: '⭐', t: 'Mi marcador: ' + puntos.ok + ' de ' + puntos.total + ' correctas', fn: function () { decir(puntos.ok === puntos.total ? '¡Perfecto! ' + puntos.ok + ' de ' + puntos.total + ' 🏆' : 'Llevas ' + puntos.ok + ' de ' + puntos.total + '. ¡Cada error es un dato para aprender! 💪', { tipo: 'feliz', urgente: true }); } });
       ops.push({ ic: '🙈', t: 'Ocultar al monito', fn: function () { aplicar(true); try { localStorage.setItem('monitoOculto', '1'); } catch (e) {} } });
       ops.push({ ic: '✖', t: 'Cerrar', fn: function () {} });
@@ -1208,6 +1206,15 @@ code { font-family: var(--mono); font-size: 13px; background: var(--verde-100); 
       preguntar: preguntar,
       modo: function () { return MODO; },
       fijarProveedor: function (fn) { proveedor = fn; },
+      alResponder: function (fn) { alResponderGlobal = fn; },
+      pedirPregunta: function () {
+        if (el.classList.contains('oculto')) { aplicar(false); try { localStorage.setItem('monitoOculto', '0'); } catch (e) {} }
+        if (hablando && hablando.pregunta) { decir('Primero responde la pregunta que tengo abierta 😉', { tipo: 'pregunta', urgente: true }); return true; }
+        var q = proveedor ? proveedor() : null;
+        if (q) { preguntar(q, { urgente: true }); return true; }
+        return false;
+      },
+      mostrar: function () { if (el.classList.contains('oculto')) { aplicar(false); try { localStorage.setItem('monitoOculto', '0'); } catch (e) {} } },
       emocion: function (n, ms) { if (emo === 'mareado' && n !== 'mareado' && performance.now() < mareoHasta) return; if (congelado && n === 'normal') return; emocion(n, ms); },
       nivelAudio: function (v) { nivel = nivel * .7 + (v || 0) * .3; }
     };
@@ -3136,10 +3143,14 @@ code { font-family: var(--mono); font-size: 13px; background: var(--verde-100); 
       if (!pool.length) continue;
       var ctx = esF ? 'f' + idDe(ST.entrada) + ':' + ST.texto + ':' : 's' + idDe(window.LAB.senal && window.LAB.senal.x) + ':';
       var libres = pool.filter(function (q) { return !preguntadas[ctx + q.id]; }).sort(function (a, b) { return (b.prio || 0) - (a.prio || 0); });
-      if (!libres.length && !cual) continue;
-      if (!libres.length) { pool.forEach(function (q) { delete preguntadas[ctx + q.id]; }); libres = revolver(pool); }
-      preguntadas[ctx + libres[0].id] = 1;
-      return libres[0];
+      if (!libres.length) continue;            // sin repeticiones: cada pregunta vale una sola vez por contexto
+      var elegida = libres[0];
+      elegida.clave = ctx + elegida.id;
+      elegida.contexto = esF ? 'Filtro: ' + ST.texto : 'Señal: ' + ((window.LAB.senal && window.LAB.senal.origen) || '');
+      elegida.tema = esF ? 'filtro' : 'senal';
+      preguntadas[elegida.clave] = 1;
+      elegida.alSaltar = function () { delete preguntadas[elegida.clave]; };
+      return elegida;
     }
     return null;
   }
@@ -3193,6 +3204,392 @@ code { font-family: var(--mono); font-size: 13px; background: var(--verde-100); 
   window.LAB.filtro = { estado: ST, parsear: parsear, filtrar: filtrar, analizarSistema: analizarSistema, irA: irA };
   }
   if (window.LAB && window.LAB.util) arrancar(); else document.addEventListener('lab-listo', arrancar);
+})();
+</script>
+
+  <!-- ============================================================
+     Registro del estudiante, marcador de aciertos/errores y envío
+     de resultados a una hoja de Google (vía un script receptor).
+     ============================================================ -->
+<style>
+  .reg-fondo {
+    position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; padding: 16px; overflow-y: auto;
+    background: radial-gradient(800px 500px at 80% 0%, rgba(198,146,20,.25), transparent 60%), rgba(1, 52, 30, .78);
+    backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+  }
+  .reg-fondo[hidden] { display: none !important; }
+  .reg-card {
+    width: 100%; max-width: 460px; background: #fff; border-radius: 24px; padding: 26px 24px 22px;
+    box-shadow: 0 30px 60px -20px rgba(0,0,0,.5); animation: regEntra .45s cubic-bezier(.2,.8,.3,1.2) both;
+  }
+  @keyframes regEntra { from { opacity: 0; transform: translateY(16px) scale(.97); } to { opacity: 1; transform: none; } }
+  .reg-card .reg-sello { width: 58px; height: 58px; border-radius: 18px; display: grid; place-items: center; background: linear-gradient(135deg, #036A3E, #0A7C4A); margin-bottom: 14px; }
+  .reg-card .reg-sello svg { width: 34px; height: 34px; fill: none; stroke: #E8C86F; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+  .reg-card h2 { font-size: 23px; color: #15241C; }
+  .reg-card .sub { font-size: 14px; color: #62736A; margin-top: 6px; }
+  .reg-campo { margin-top: 14px; }
+  .reg-campo label { display: block; font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: #0A7C4A; margin-bottom: 5px; }
+  .reg-campo input {
+    width: 100%; font: 16px Arial, Helvetica, sans-serif; padding: 12px 14px; border-radius: 14px; border: 1.5px solid #DCE5DF;
+    background: #F4F2EB; color: #15241C; transition: border-color .2s, background .2s;
+  }
+  .reg-campo input:focus { outline: none; border-color: #C69214; background: #fff; }
+  .reg-campo input.mal { border-color: #D93A2F; background: #FFF6F5; }
+  .reg-campo .err { display: none; font-size: 12.5px; color: #B3261E; margin-top: 4px; }
+  .reg-campo input.mal + .err { display: block; }
+  .reg-fila { display: grid; grid-template-columns: 1fr 120px; gap: 10px; }
+  .reg-acepto { display: flex; gap: 9px; align-items: flex-start; margin-top: 14px; font-size: 13px; color: #2F4037; cursor: pointer; }
+  .reg-acepto input { width: 18px; height: 18px; margin-top: 1px; accent-color: #036A3E; flex: 0 0 18px; }
+  .reg-acepto.mal { color: #B3261E; }
+  .reg-reglas { margin-top: 14px; padding: 11px 13px; border-radius: 14px; background: #FCF7EA; border: 1px solid #F7ECD0; font-size: 13px; color: #2F4037; }
+  .reg-reglas b { color: #7A590A; }
+  .reg-entrar {
+    width: 100%; margin-top: 18px; padding: 14px; border: 0; border-radius: 16px; cursor: pointer;
+    font: 700 16px Arial, Helvetica, sans-serif; color: #fff; background: linear-gradient(135deg, #036A3E, #0A7C4A);
+    box-shadow: 0 10px 20px -10px rgba(3,106,62,.7);
+  }
+  .reg-entrar:hover { filter: brightness(1.05); }
+  .reg-aviso { margin-top: 10px; font-size: 12px; color: #B3261E; text-align: center; }
+
+  /* marcador */
+  .hud {
+    position: fixed; right: 14px; top: 84px; z-index: 45; width: 236px; background: rgba(255,255,255,.96);
+    backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-radius: 18px; padding: 12px 13px;
+    box-shadow: 0 14px 34px -14px rgba(1,52,30,.45); border: 1px solid rgba(3,106,62,.12); font-family: Arial, Helvetica, sans-serif;
+  }
+  .hud[hidden] { display: none !important; }
+  .hud-top { display: flex; align-items: center; justify-content: space-between; gap: 6px; font-size: 12px; color: #62736A; }
+  .hud-quien { font-weight: 700; color: #15241C; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 150px; }
+  .hud-sync { font-size: 11px; padding: 2px 7px; border-radius: 999px; background: #E4F1EA; color: #024D2D; white-space: nowrap; }
+  .hud-sync.pend { background: #FCF7EA; color: #7A590A; }
+  .hud-sync.error { background: #FDECEA; color: #8E1B12; }
+  .hud-min { border: 0; background: none; cursor: pointer; color: #62736A; font-size: 16px; line-height: 1; padding: 0 2px; }
+  .hud-cuentas { display: flex; align-items: center; gap: 12px; margin-top: 8px; }
+  .hud-cuentas span { font-size: 13px; color: #2F4037; display: inline-flex; align-items: baseline; gap: 4px; }
+  .hud-cuentas b { font-size: 24px; font-variant-numeric: tabular-nums; }
+  .hud-cuentas .ok b { color: #036A3E; }
+  .hud-cuentas .no b { color: #D93A2F; }
+  .hud-cuentas .pct { margin-left: auto; font-weight: 700; color: #7A590A; font-size: 14px; }
+  .hud-barra { height: 8px; border-radius: 8px; background: #EEF1EC; overflow: hidden; margin-top: 8px; }
+  .hud-barra i { display: block; height: 100%; width: 0; border-radius: 8px; background: linear-gradient(90deg, #E8C86F, #C69214); transition: width .5s ease; }
+  .hud.completo .hud-barra i { background: linear-gradient(90deg, #2E9467, #036A3E); }
+  .hud-meta { font-size: 12px; color: #62736A; margin-top: 5px; }
+  .hud.completo .hud-meta { color: #036A3E; font-weight: 700; }
+  .hud-btns { display: flex; gap: 6px; margin-top: 10px; }
+  .hud-btns button { flex: 1; cursor: pointer; border-radius: 11px; font: 700 13px Arial, Helvetica, sans-serif; padding: 9px 6px; border: 1px solid #DCE5DF; background: #fff; color: #024D2D; }
+  .hud-btns button.prim { background: #C69214; border-color: #C69214; color: #01341E; }
+  .hud.completo .hud-btns button.fin { background: #036A3E; border-color: #036A3E; color: #fff; }
+  .hud.mini { width: auto; padding: 8px 12px; cursor: pointer; }
+  .hud.mini .hud-top, .hud.mini .hud-barra, .hud.mini .hud-meta, .hud.mini .hud-btns { display: none; }
+  .hud.mini .hud-cuentas { margin-top: 0; gap: 10px; }
+  .hud.mini .hud-cuentas b { font-size: 17px; }
+  .hud .mini-prog { display: none; font-size: 12px; font-weight: 700; color: #7A590A; }
+  .hud.mini .mini-prog { display: inline; }
+  .hud.mini .pct { display: none; }
+  .hud.salta { animation: hudSalta .5s ease; }
+  @keyframes hudSalta { 40% { transform: scale(1.06); } }
+
+  /* resumen */
+  .res-num { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 16px; }
+  .res-num div { border-radius: 16px; padding: 12px; text-align: center; background: #F4F2EB; }
+  .res-num b { display: block; font-size: 28px; }
+  .res-num small { font-size: 11.5px; color: #62736A; text-transform: uppercase; letter-spacing: .05em; }
+  .res-num .ok b { color: #036A3E; } .res-num .no b { color: #D93A2F; } .res-num .pc b { color: #7A590A; }
+  .res-lista { margin-top: 14px; max-height: 210px; overflow-y: auto; display: grid; gap: 6px; }
+  .res-lista div { display: flex; gap: 8px; font-size: 13px; padding: 7px 9px; border-radius: 10px; background: #F4F2EB; }
+  .res-lista div.ok { background: #E4F1EA; } .res-lista div.no { background: #FFF1EF; }
+  .res-falta { margin-top: 12px; padding: 10px 12px; border-radius: 12px; background: #FCF7EA; color: #7A590A; font-size: 13.5px; }
+  .res-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 16px; }
+  .res-btns button { padding: 12px; border-radius: 14px; cursor: pointer; font: 700 14px Arial, Helvetica, sans-serif; border: 1px solid #DCE5DF; background: #fff; color: #024D2D; }
+  .res-btns button.prim { background: #036A3E; color: #fff; border-color: #036A3E; }
+
+  @media (max-width: 720px) {
+    .hud { top: auto; bottom: 64px; right: 10px; width: 210px; }
+    .reg-fila { grid-template-columns: 1fr; }
+  }
+</style>
+
+<!-- ===== Registro ===== -->
+<div class="reg-fondo" id="regFondo" role="dialog" aria-modal="true" aria-labelledby="regTitulo">
+  <form class="reg-card" id="regForm" novalidate>
+    <div class="reg-sello"><svg viewBox="0 0 24 24"><path d="M3 12h4l2-6 4 12 2-6h6"/></svg></div>
+    <h2 id="regTitulo">Antes de entrar al laboratorio</h2>
+    <p class="sub">Regístrate para que tus respuestas cuenten. El monito te hará preguntas y se guardarán tus aciertos y errores.</p>
+    <div class="reg-campo">
+      <label for="regCorreo">Correo electrónico</label>
+      <input id="regCorreo" type="email" autocomplete="email" inputmode="email" placeholder="tu.correo@ejemplo.com" maxlength="120">
+      <div class="err">Escribe un correo válido (por ejemplo, nombre@uabc.edu.mx).</div>
+    </div>
+    <div class="reg-campo">
+      <label for="regNombre">Nombre completo</label>
+      <input id="regNombre" type="text" autocomplete="name" placeholder="Nombre y apellidos" maxlength="100">
+      <div class="err">Escribe tu nombre y al menos un apellido.</div>
+    </div>
+    <div class="reg-fila">
+      <div class="reg-campo">
+        <label for="regGrupo">Grupo</label>
+        <input id="regGrupo" type="text" placeholder="p. ej. 541" maxlength="20" autocomplete="off">
+        <div class="err">Escribe tu grupo.</div>
+      </div>
+      <div class="reg-campo">
+        <label for="regMin">Mínimo</label>
+        <input id="regMin" type="text" value="10 preguntas" disabled>
+      </div>
+    </div>
+    <div class="reg-reglas">🧠 Responde <b>al menos <span id="regMinTxt">10</span> preguntas</b> del monito. Cada pregunta cuenta una sola vez: para obtener preguntas nuevas, prueba otros filtros o graba otra señal.</div>
+    <label class="reg-acepto" id="regAceptoL"><input type="checkbox" id="regAcepto">Acepto que mi correo, nombre, grupo y respuestas se guarden para la evaluación del curso.</label>
+    <button class="reg-entrar" type="submit">Entrar al laboratorio</button>
+    <p class="reg-aviso" id="regAviso" hidden></p>
+  </form>
+</div>
+
+<!-- ===== Marcador ===== -->
+<aside class="hud" id="hud" hidden aria-live="polite">
+  <div class="hud-top"><span class="hud-quien" id="hudQuien"></span><span class="hud-sync" id="hudSync">☁ listo</span><button class="hud-min" id="hudMin" type="button" aria-label="Minimizar marcador" title="Minimizar">–</button></div>
+  <div class="hud-cuentas">
+    <span class="ok" title="Aciertos">✅ <b id="hudOk">0</b></span>
+    <span class="no" title="Errores">❌ <b id="hudNo">0</b></span>
+    <span class="mini-prog" id="hudMiniProg">0/10</span>
+    <span class="pct" id="hudPct">—</span>
+  </div>
+  <div class="hud-barra"><i id="hudBarra"></i></div>
+  <div class="hud-meta" id="hudMeta">0 de 10 preguntas</div>
+  <div class="hud-btns">
+    <button class="prim" id="hudPregunta" type="button">🧠 Pregunta</button>
+    <button class="fin" id="hudTerminar" type="button">Terminar</button>
+  </div>
+</aside>
+
+<!-- ===== Resumen ===== -->
+<div class="reg-fondo" id="resFondo" hidden role="dialog" aria-modal="true" aria-labelledby="resTitulo">
+  <div class="reg-card">
+    <div class="reg-sello"><svg viewBox="0 0 24 24"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0zM7 6H4a3 3 0 0 0 3 4M17 6h3a3 3 0 0 1-3 4"/></svg></div>
+    <h2 id="resTitulo">Tus resultados</h2>
+    <p class="sub" id="resQuien"></p>
+    <div class="res-num">
+      <div class="ok"><b id="resOk">0</b><small>Aciertos</small></div>
+      <div class="no"><b id="resNo">0</b><small>Errores</small></div>
+      <div class="pc"><b id="resPct">0%</b><small>Calificación</small></div>
+    </div>
+    <div class="res-falta" id="resFalta" hidden></div>
+    <div class="res-lista" id="resLista"></div>
+    <p class="sub" id="resSync" style="margin-top:10px"></p>
+    <div class="res-btns">
+      <button type="button" id="resSeguir">Seguir practicando</button>
+      <button type="button" class="prim" id="resSalir">Enviar y salir</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+  function $(id) { return document.getElementById(id); }
+  var CFG = {};
+  try { CFG = JSON.parse(($('config') || {}).textContent || '{}'); } catch (e) {}
+  var URL_REG = String(CFG.URL_REGISTRO || '').trim();
+  if (!/^https:\/\//.test(URL_REG)) URL_REG = '';            // marcador sin configurar
+  var MINIMO = Math.max(1, parseInt(CFG.PREGUNTAS_MINIMAS, 10) || 10);
+  var APP = CFG.TITULO || 'Laboratorio de filtros';
+
+  $('regMinTxt').textContent = MINIMO; $('regMin').value = MINIMO + ' preguntas';
+
+  function uid() {
+    if (window.crypto && crypto.getRandomValues) { var a = new Uint32Array(4); crypto.getRandomValues(a); return Array.prototype.map.call(a, function (v) { return v.toString(36); }).join(''); }
+    return Date.now().toString(36) + Math.random().toString(36).slice(2);
+  }
+  function guardarLS(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+  function leerLS(k, d) { try { var v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } }
+
+  /* =========================================================
+   * Sesión
+   * ========================================================= */
+  var SES = null;
+  var historial = [];
+
+  // la página no se puede usar hasta registrarse
+  var main = document.querySelector('main'), hero = document.querySelector('.hero');
+  function bloquear(b) { [main, hero].forEach(function (el) { if (!el) return; if (b) el.setAttribute('inert', ''); else el.removeAttribute('inert'); el.setAttribute('aria-hidden', b ? 'true' : 'false'); }); }
+  bloquear(true);
+
+  // prellenar con lo último que se usó en este navegador (igual hay que confirmar)
+  var previo = leerLS('regDatos', null);
+  if (previo) { $('regCorreo').value = previo.correo || ''; $('regNombre').value = previo.nombre || ''; $('regGrupo').value = previo.grupo || ''; }
+  setTimeout(function () { try { $(previo ? 'regAcepto' : 'regCorreo').focus(); } catch (e) {} }, 300);
+
+  function validar() {
+    var ok = true;
+    var c = $('regCorreo'), n = $('regNombre'), g = $('regGrupo');
+    var vc = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(c.value.trim());
+    var vn = n.value.trim().replace(/\s+/g, ' ').split(' ').filter(function (p) { return p.length >= 2; }).length >= 2;
+    var vg = g.value.trim().length >= 1;
+    c.classList.toggle('mal', !vc); n.classList.toggle('mal', !vn); g.classList.toggle('mal', !vg);
+    $('regAceptoL').classList.toggle('mal', !$('regAcepto').checked);
+    ok = vc && vn && vg && $('regAcepto').checked;
+    return ok;
+  }
+  ['regCorreo', 'regNombre', 'regGrupo'].forEach(function (id) { $(id).addEventListener('input', function () { $(id).classList.remove('mal'); }); });
+  $('regForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+    if (!validar()) { $('regAviso').textContent = 'Revisa los campos marcados en rojo y acepta el aviso.'; $('regAviso').hidden = false; return; }
+    var datos = {
+      correo: $('regCorreo').value.trim().toLowerCase(),
+      nombre: $('regNombre').value.trim().replace(/\s+/g, ' '),
+      grupo: $('regGrupo').value.trim().toUpperCase()
+    };
+    guardarLS('regDatos', datos);
+    SES = { id: uid(), correo: datos.correo, nombre: datos.nombre, grupo: datos.grupo, inicio: new Date().toISOString(), t0: Date.now(), aciertos: 0, errores: 0, contadas: 0, completo: false, terminado: false };
+    $('regFondo').hidden = true; bloquear(false);
+    $('hudQuien').textContent = '👤 ' + SES.nombre.split(' ')[0] + ' · ' + SES.grupo;
+    $('hudQuien').title = SES.nombre + ' · ' + SES.correo;
+    $('hud').hidden = false;
+    pintarHud();
+    enviar(base('inicio'));
+    var nombre = SES.nombre.split(' ')[0];
+    if (window.Monito) {
+      window.Monito.decir('¡Hola, ' + nombre + '! 👋 Tu meta: responder al menos ' + MINIMO + ' de mis preguntas. Tu marcador está arriba a la derecha.', { tipo: 'feliz', urgente: true });
+      window.Monito.decir('Empieza grabando tu voz o usando la “Señal de ejemplo”. Después de cada operación te preguntaré algo 🤓', { tipo: 'info' });
+    }
+  });
+
+  function base(tipo) {
+    return {
+      tipo: tipo, envio: uid(), sesion: SES.id, correo: SES.correo, nombre: SES.nombre, grupo: SES.grupo, app: APP,
+      inicio: SES.inicio, hora: new Date().toISOString(), aciertos: SES.aciertos, errores: SES.errores, contadas: SES.contadas,
+      minimo: MINIMO, completo: SES.contadas >= MINIMO, minutos: Math.round((Date.now() - SES.t0) / 6000) / 10,
+      dispositivo: (navigator.userAgent || '').slice(0, 140)
+    };
+  }
+
+  /* =========================================================
+   * Respuestas del monito
+   * ========================================================= */
+  function alResponder(r) {
+    if (!SES) return;
+    var q = r.q || {};
+    SES.contadas++;
+    if (r.ok) SES.aciertos++; else SES.errores++;
+    historial.push({ ok: r.ok, etiqueta: q.etiqueta || 'Pregunta', texto: q.texto || '' });
+    var p = base('respuesta');
+    p.numero = SES.contadas; p.tema = q.tema || ''; p.idPregunta = q.id || ''; p.etiqueta = q.etiqueta || '';
+    p.pregunta = q.texto || ''; p.elegida = r.elegida || ''; p.correcta = r.correcta || ''; p.acerto = !!r.ok; p.contexto = q.contexto || '';
+    enviar(p);
+    pintarHud(true);
+    if (SES.contadas === MINIMO && !SES.completo) {
+      SES.completo = true;
+      setTimeout(function () {
+        if (!window.Monito) return;
+        window.Monito.emocion('feliz', 3500);
+        window.Monito.decir('🏆 ¡Completaste las ' + MINIMO + ' preguntas mínimas! Llevas ' + SES.aciertos + ' aciertos. Puedes seguir practicando o tocar “Terminar”.', { tipo: 'feliz', urgente: true });
+      }, 900);
+    }
+  }
+  if (window.Monito && window.Monito.alResponder) window.Monito.alResponder(alResponder);
+
+  /* =========================================================
+   * Marcador
+   * ========================================================= */
+  function pintarHud(salto) {
+    if (!SES) return;
+    $('hudOk').textContent = SES.aciertos; $('hudNo').textContent = SES.errores;
+    var tot = SES.aciertos + SES.errores;
+    $('hudPct').textContent = tot ? Math.round(SES.aciertos / tot * 100) + ' %' : '—';
+    $('hudBarra').style.width = Math.min(100, SES.contadas / MINIMO * 100) + '%';
+    $('hudMeta').textContent = SES.contadas >= MINIMO ? '✔ Mínimo completado (' + SES.contadas + ' respondidas)' : SES.contadas + ' de ' + MINIMO + ' preguntas · faltan ' + (MINIMO - SES.contadas);
+    $('hudMiniProg').textContent = SES.contadas + '/' + MINIMO;
+    $('hud').classList.toggle('completo', SES.contadas >= MINIMO);
+    if (salto) { var h = $('hud'); h.classList.remove('salta'); void h.offsetWidth; h.classList.add('salta'); }
+  }
+  $('hudMin').addEventListener('click', function (e) { e.stopPropagation(); $('hud').classList.add('mini'); });
+  $('hud').addEventListener('click', function () { if ($('hud').classList.contains('mini')) $('hud').classList.remove('mini'); });
+  if (window.matchMedia && window.matchMedia('(max-width: 720px)').matches) $('hud').classList.add('mini');
+  $('hudPregunta').addEventListener('click', function (e) {
+    e.stopPropagation();
+    if (!window.Monito) return;
+    if (!window.Monito.pedirPregunta()) {
+      window.Monito.mostrar();
+      window.Monito.decir(window.LAB && window.LAB.senal
+        ? '¡Ya respondiste todas mis preguntas sobre esto! Ve a la pestaña del filtro y prueba otro ejemplo, agrega el zumbido de 60 Hz o graba otra señal para que tenga preguntas nuevas 🎙️'
+        : 'Primero graba tu voz o usa la “Señal de ejemplo” para que tenga algo que preguntarte 🎙️', { tipo: 'pregunta', urgente: true });
+    }
+  });
+  $('hudTerminar').addEventListener('click', function (e) { e.stopPropagation(); abrirResumen(); });
+
+  /* =========================================================
+   * Resumen final
+   * ========================================================= */
+  function abrirResumen() {
+    if (!SES) return;
+    var tot = SES.aciertos + SES.errores;
+    $('resQuien').textContent = SES.nombre + ' · Grupo ' + SES.grupo + ' · ' + SES.correo;
+    $('resOk').textContent = SES.aciertos; $('resNo').textContent = SES.errores;
+    $('resPct').textContent = tot ? Math.round(SES.aciertos / tot * 100) + '%' : '0%';
+    var falta = MINIMO - SES.contadas;
+    $('resFalta').hidden = falta <= 0;
+    $('resFalta').textContent = falta > 0 ? '⚠️ Te faltan ' + falta + ' pregunta' + (falta > 1 ? 's' : '') + ' para el mínimo de ' + MINIMO + '. Si sales ahora, tu sesión se guardará como incompleta.' : '';
+    $('resSalir').textContent = falta > 0 ? 'Salir de todos modos' : 'Enviar y salir';
+    $('resLista').innerHTML = historial.map(function (h, i) {
+      return '<div class="' + (h.ok ? 'ok' : 'no') + '"><span>' + (h.ok ? '✅' : '❌') + '</span><span><b>' + (i + 1) + '. ' + escapar(h.etiqueta) + ':</b> ' + escapar(h.texto.length > 90 ? h.texto.slice(0, 88) + '…' : h.texto) + '</span></div>';
+    }).join('') || '<div>Aún no has respondido preguntas.</div>';
+    $('resSync').textContent = URL_REG ? (cola.length ? '⏳ Enviando ' + cola.length + ' registro(s) pendiente(s)…' : '☁ Todas tus respuestas están guardadas.') : '⚠️ Esta copia no tiene configurada la hoja de resultados: avisa a tu profesor.';
+    $('resFondo').hidden = false;
+  }
+  function escapar(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+  $('resSeguir').addEventListener('click', function () { $('resFondo').hidden = true; });
+  $('resSalir').addEventListener('click', function () {
+    var b = $('resSalir'); b.disabled = true; b.textContent = 'Guardando…';
+    SES.terminado = true;
+    var p = base('fin'); p.estado = SES.contadas >= MINIMO ? 'completada' : 'incompleta';
+    enviar(p);
+    var limite = Date.now() + 8000;
+    (function esperar() {
+      if (!cola.length || !URL_REG || Date.now() > limite) { SES = null; location.reload(); return; }
+      setTimeout(esperar, 300);
+    })();
+  });
+
+  /* =========================================================
+   * Envío a la hoja de Google (con cola y reintentos)
+   * ========================================================= */
+  var cola = leerLS('regCola', []), enviando = false, tReintento = null;
+  function estadoSync(t, cls) { var s = $('hudSync'); s.textContent = t; s.className = 'hud-sync' + (cls ? ' ' + cls : ''); }
+  function enviar(p) {
+    cola.push(p); guardarLS('regCola', cola.slice(-400));
+    vaciar();
+  }
+  function postear(p) {
+    var cuerpo = JSON.stringify(p);
+    return fetch(URL_REG, { method: 'POST', body: cuerpo, redirect: 'follow' })   // text/plain: sin “preflight”
+      .then(function (r) { return r.text(); })
+      .then(function (t) { var j = JSON.parse(t); return !!j.ok; })
+      .catch(function () {
+        // si el navegador no deja leer la respuesta, se envía sin leerla (el servidor descarta duplicados)
+        return fetch(URL_REG, { method: 'POST', mode: 'no-cors', body: cuerpo }).then(function () { return true; }, function () { return false; });
+      });
+  }
+  function vaciar() {
+    if (!URL_REG) { estadoSync('⚠ sin hoja', 'error'); return; }
+    if (enviando) return;
+    if (!cola.length) { estadoSync('☁ guardado'); return; }
+    enviando = true; estadoSync('⏳ guardando', 'pend');
+    var p = cola[0];
+    postear(p).then(function (ok) {
+      enviando = false;
+      if (ok) { cola.shift(); guardarLS('regCola', cola); vaciar(); }
+      else { estadoSync('⚠ sin conexión', 'error'); clearTimeout(tReintento); tReintento = setTimeout(vaciar, 15000); }
+    });
+  }
+  vaciar();   // reintenta lo que haya quedado pendiente de otra visita
+  window.addEventListener('online', vaciar);
+  // si cierran la pestaña sin terminar, se guarda el último estado
+  window.addEventListener('pagehide', function () {
+    if (!SES || SES.terminado || !URL_REG) return;
+    var p = base('salida'); p.estado = SES.contadas >= MINIMO ? 'completada (sin terminar)' : 'abandonó';
+    try { if (navigator.sendBeacon) navigator.sendBeacon(URL_REG, new Blob([JSON.stringify(p)], { type: 'text/plain' })); } catch (e) {}
+  });
+
+  window.LAB = window.LAB || {};
+  window.LAB.registro = { sesion: function () { return SES; }, cola: function () { return cola; } };
 })();
 </script>
 
